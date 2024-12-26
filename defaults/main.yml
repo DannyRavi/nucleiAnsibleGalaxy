@@ -1,0 +1,10 @@
+---
+nuclei_version: "3.3.7"
+template_version: "10.1.1"
+
+nuclei_install_path: "/usr/local/bin/nuclei"
+nuclei_install_path_win: "C:\Program Files\Nuclei"
+nuclei_binary_url: "https://github.com/projectdiscovery/nuclei/releases/download/v{{ nuclei_version }}/nuclei_{{ nuclei_version }}_linux_amd64.zip"
+nuclei_template_url: "https://github.com/projectdiscovery/nuclei-templates/archive/refs/tags/v{{ template_version }}.zip"
+nuclei_template_zip_name: "nuclei-templates-{{ template_version }}"
+

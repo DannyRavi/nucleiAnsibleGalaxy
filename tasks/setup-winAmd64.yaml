@@ -1,0 +1,33 @@
+---
+- hosts: windows
+  become: true
+  tasks:
+    - name: Download and extract Nuclei
+      win_get_url:
+        url: "{{ nuclei_binary_url }}"
+        dest: C:\temp\nuclei_{{ nuclei_version }}.zip"
+      unarchive:
+        src: C:\temp\nuclei_{{ nuclei_version }}.zip"
+        dest: "{{ nuclei_install_path_win }}"
+        create_directory: yes
+
+    - name: Add Nuclei to PATH
+      win_shell: setx PATH "%PATH%;{{ nuclei_install_path_win }}"
+
+    - name: Test Nuclei installation
+      shell: nuclei -h
+      register: nuclei_check
+      changed_when: false
+
+    - name: Verify Nuclei installation
+      assert:
+        that: nuclei_check.rc == 0
+        fail_msg: "Nuclei installation failed."
+## todo check this line
+    - name: Run a Nuclei scan (example)
+      shell: nuclei -u http://example.com -t templates/default/ -o results.json
+      register: nuclei_scan_result
+
+    - name: Print scan results
+      debug:
+        msg: "{{ nuclei_scan_result.stdout }}"

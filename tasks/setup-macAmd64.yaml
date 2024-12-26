@@ -1,0 +1,36 @@
+---
+- hosts: mac
+  become: true
+  tasks:
+    - name: Download Nuclei release
+      get_url:
+        url: "{{ nuclei_binary_url }}"
+        dest: /tmp/nuclei
+
+    - name: Make Nuclei executable
+      file:
+        path: /tmp/nuclei
+        mode: 'u+x'
+
+    - name: Move Nuclei to /usr/local/bin
+      copy:
+        src: /tmp/nuclei
+        dest: "{{ nuclei_install_path }}"
+
+    - name: Test Nuclei installation
+      shell: nuclei -h
+      register: nuclei_check
+      changed_when: false
+
+    - name: Verify Nuclei installation
+      assert:
+        that: nuclei_check.rc == 0
+        fail_msg: "Nuclei installation failed."
+
+    - name: Run a Nuclei scan (example)
+      shell: nuclei -u http://example.com -t templates/default/ -o results.json
+      register: nuclei_scan_result
+
+    - name: Print scan results
+      debug:
+        msg: "{{ nuclei_scan_result.stdout }}"

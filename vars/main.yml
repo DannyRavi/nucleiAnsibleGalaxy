@@ -1,0 +1,4 @@
+---
+# vars file for nuclei
+install_version: 3.3.7
+

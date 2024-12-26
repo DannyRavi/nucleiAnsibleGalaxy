@@ -1,0 +1,112 @@
+---
+
+- name: Show OS family
+  debug:
+    msg: "OS Family: {{ ansible_os_family }}"
+
+- name: Ensure the necessary dependencies are installed
+  become: true
+  ansible.builtin.package:
+    name: unzip
+    state: present
+  become: true
+
+
+- name: Check if nuclei binary zip file exists
+  stat:
+    path: "/tmp/nuclei_{{ nuclei_version }}.zip"
+  register: zip_file_status
+
+- name: Download the nuclei binary
+  ansible.builtin.get_url:
+    url: "{{ nuclei_binary_url }}"
+    dest: "/tmp/nuclei_{{ nuclei_version }}.zip"
+    mode: '0644'
+  when: not zip_file_status.stat.exists
+
+- name: Extract the nuclei binary
+  ansible.builtin.unarchive:
+    src: "/tmp/nuclei_{{ nuclei_version }}.zip"
+    dest: "/tmp"
+    remote_src: true
+
+- name: Move the nuclei binary to the installation path
+  ansible.builtin.command: mv /tmp/nuclei "{{ nuclei_install_path }}"
+  become: true
+
+- name: Set executable permissions for nuclei
+  ansible.builtin.file:
+    path: "{{ nuclei_install_path }}"
+    mode: '0755'
+    owner: root
+    group: root
+    state: file
+  become: true
+
+- name: Verify the nuclei installation
+  ansible.builtin.command: "{{ nuclei_install_path }} --version"
+  register: nuclei_version_check
+
+- debug:
+    var: nuclei_version_check.stdout
+
+- name: Check if nuclei Templates zip file exists
+  stat:
+    path: "/tmp/nuclei_{{ nuclei_version }}.zip"
+  register: zip_temp_status
+
+- name: Download Nuclei Templates
+  ansible.builtin.get_url:
+    url: "{{ nuclei_template_url }}"
+    dest: "/tmp/{{nuclei_template_zip_name}}.zip"
+    mode: '0644'
+  when: not zip_temp_status.stat.exists
+
+#todo: convert from tmp to permanent route
+# - name: Unzip Nuclei Templates
+#   unarchive:
+#     src: "/tmp/{{nuclei_template_zip_name}}"
+#     dest: /tmp/nuclei-templates
+#     create_directory: yes
+
+- name: Check if extraction directory exists
+  stat:
+    path: /tmp/the_templates
+  register: extraction_dir_status
+
+- name: Create extraction directory if not exists
+  file:
+    path: /tmp/the_templates
+    state: directory
+  when: not extraction_dir_status.stat.exists
+
+
+- name: Extract and Unzip Nuclei Templates
+  ansible.builtin.unarchive:
+    src: "/tmp/{{nuclei_template_zip_name}}.zip"
+    dest: "/tmp/the_templates"
+    remote_src: true
+    
+    # create_directory: yes
+
+- name: Test Nuclei installation
+  shell: nuclei -h
+  register: nuclei_check
+  changed_when: false
+
+
+- name: Verify Nuclei installation
+  assert:
+    that: nuclei_check.rc == 0
+    fail_msg: "Nuclei installation failed."
+
+- name: Run a Nuclei scan (example)
+  shell: nuclei -u http://example.com -t /tmp/the_templates/{{nuclei_template_zip_name}}/http/vulnerabilities/cisco/ -o /tmp/results.json
+  register: nuclei_scan_result
+
+- name: Print scan results
+  debug:
+    msg: "{{ nuclei_scan_result.stdout }}" 
+# - name: Run nuclei as root
+#   ansible.builtin.command: "{{ nuclei_install_path }}"
+#   become: true

@@ -1,0 +1,5 @@
+---
+
+- name: Show OS family
+  debug:
+    msg: "OS Family: {{ ansible_os_family }}"

@@ -8,3 +8,6 @@ nuclei_binary_url: "https://github.com/projectdiscovery/nuclei/releases/download
 nuclei_template_url: "https://github.com/projectdiscovery/nuclei-templates/archive/refs/tags/v{{ template_version }}.zip"
 nuclei_template_zip_name: "nuclei-templates-{{ template_version }}"
 
+nuclei_command: /tmp/the_templates
+
+nuclei_args: "" 

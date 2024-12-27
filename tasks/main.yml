@@ -3,16 +3,46 @@
 # - name: Include OS-specific variables.
 #   include_vars: "{{ ansible_os_family }}.yml"
 
-
+- name: Preflight
+  ansible.builtin.include_tasks:
+    file: check.yaml
+  tags:
+    - install
+    - run
 
   # Setup/install tasks.
-- include_tasks: setup-linuxAmd64.yaml
+- name: run nuclei
+  ansible.builtin.include_tasks:
+    file: run.yaml
+    apply:
+      tags:
+        - run
+  tags: run
+
+
+- name: install nuclei linux
+  ansible.builtin.include_tasks:
+    file: setup-linuxAmd64.yaml
+    apply:
+      tags:
+        - install
+  tags: install
   when: ansible_os_family == 'Debian'
 
-
-- include_tasks: setup-winAmd64.yaml
+- name: install nuclei windows
+  ansible.builtin.include_tasks:
+    file: setup-winAmd64.yaml
+    apply:
+      tags:
+        - install
+  tags: install
   when: ansible_os_family == 'Windows'
 
-
-- include_tasks: setup-macAmd64.yaml
+- name: install nuclei windows
+  ansible.builtin.include_tasks:
+    file: setup-macAmd64.yaml
+    apply:
+      tags:
+        - install
+  tags: install
   when: ansible_os_family == 'MacOSX'

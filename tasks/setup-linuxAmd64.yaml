@@ -52,7 +52,7 @@
 
 - name: Check if nuclei Templates zip file exists
   stat:
-    path: "/tmp/nuclei_{{ nuclei_version }}.zip"
+    path: "/tmp/nuclei_{{ nuclei_template_zip_name }}.zip"
   register: zip_temp_status
 
 - name: Download Nuclei Templates
@@ -81,27 +81,66 @@
   when: not extraction_dir_status.stat.exists
 
 
+# - name: Check if extraction directory exists template root
+#   stat:
+#     path: /root/nuclei-templates
+#   register: extraction_templates_dir_status
+
+# - name: Create extraction directory if not exists  template root
+#   file:
+#     path: /root/nuclei-templates
+#     state: directory
+#   when: not extraction_templates_dir_status
+
 - name: Extract and Unzip Nuclei Templates
   ansible.builtin.unarchive:
     src: "/tmp/{{nuclei_template_zip_name}}.zip"
     dest: "/tmp/the_templates"
     remote_src: true
-    
-    # create_directory: yes
+
+# - name: Copy .nuclei-template file to root
+#   copy:
+#     src: "/tmp/the_templates/{{nuclei_template_zip_name}}" 
+#     dest: "/root/nuclei-templates"
+#     remote_src: true
+#     mode: 0644
+- name: Remove directory if exists
+  file:
+    path: /root/nuclei-templates
+    state: absent 
+
+- name: Copy .nuclei-template file to root
+  ansible.builtin.command:
+    cmd: mv /tmp/the_templates/{{nuclei_template_zip_name}} /root/nuclei-templates
+    # mode: 0644
+    # remote_src: true
+
 
 - name: Test Nuclei installation
   shell: nuclei -h
   register: nuclei_check
   changed_when: false
 
+- name: Download .nuclei-ignore file from GitHub
+  get_url:
+    url: https://raw.githubusercontent.com/projectdiscovery/nuclei-templates/master/.nuclei-ignore
+    dest: "/tmp/.nuclei-ignore"
+    mode: 0644
 
 - name: Verify Nuclei installation
   assert:
     that: nuclei_check.rc == 0
     fail_msg: "Nuclei installation failed."
+# change from copy to move
+- name: Copy .nuclei-ignore file
+  copy:
+    src: "/tmp/.nuclei-ignore"
+    dest: "/root/.config/nuclei/.nuclei-ignore"
+    remote_src: true
+    mode: 0644
 
 - name: Run a Nuclei scan (example)
-  shell: nuclei -u http://example.com -t /tmp/the_templates/{{nuclei_template_zip_name}}/http/vulnerabilities/cisco/ -o /tmp/results.json
+  shell: nuclei -u http://example.com -t http/vulnerabilities/cisco/ -o /tmp/results.json
   register: nuclei_scan_result
 
 - name: Print scan results

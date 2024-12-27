@@ -6,20 +6,40 @@
   register: nuclei_check
   failed_when: nuclei_check.rc != 0
 
-- name: Run nuclei with custom arguments
-  ansible.builtin.command: "{{ nuclei_command }}"
-  vars:
-    nuclei_command: "nuclei {{ nuclei_args }} -j -o /tmp/result.json"
-  register: nuclei_run
-  failed_when: nuclei_run.rc != 0
-
-- debug:
-    msg: "{{ nuclei_run.stdout | to_json }}"
-
 - name: Read the content of a file
   set_fact:
-    file_content: "{{ lookup('file', '/tmp/result.json') }}"
+    file_content: "{{ lookup('file', '/etc/hosts') }}"
 
-- name: Display the file content
+
+
+
+# - name: Run nuclei with custom arguments
+#   # ansible.builtin.command: "nuclei {{ nuclei_args }} -j -o {{ output_file }}"
+#   ansible.builtin.command: "nuclei -target example.com -t ssl -stats -o /tmp/result.json"
+#   register: nuclei_run
+#   failed_when: nuclei_run.rc != 0
+
+# - debug:
+#     msg: "{{ nuclei_run.stdout | to_json }}"
+
+# - name: Read the file content using command
+#   command: cat {{ output_file }}
+#   register: file_output
+
+# - name: Display the file content
+#   debug:
+#     msg: "{{ file_output.stdout  | to_json  }}"
+- name: Print a shell command
   debug:
-    msg: "{{ file_content }}"
+    msg: "nuclei {{ nuclei_args }} -nc -j -o  {{ output_file }}"
+
+
+- name: Run a Nuclei scan (example)
+  shell: "nuclei {{ nuclei_args }} -nc -j -o {{ output_file }}"
+  register: nuclei_scan_result
+  # args:
+  #   executable: /usr/bin/nuclei  # Adjust path if necessary
+
+- name: Print scan results
+  debug:
+    msg: "{{ nuclei_scan_result.stdout | to_json }}" 

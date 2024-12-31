@@ -8,26 +8,51 @@
 
 - name: Calculate the number of hosts
   set_fact:
-    total_hosts: "{{ groups['all'] | length }}"
+    total_hosts: "{{ groups['all'] | length  }} "
+
+- name: Convert the string to an integer
+  set_fact:
+    total_hosts_int: "{{ total_hosts | int }}"
 
 - name: split family
   debug:
     msg: "split : {{ file_line_count.stdout.split()[0] }}"
 
+- name: Extract the numeric part
+  set_fact:
+    extracted_number: "{{ file_line_count.stdout.split()[0] | regex_search('\\d+') }}"
+
+- name: Display the result
+  debug:
+    msg: "Extracted number is: {{ extracted_number }}"
+
+- name: Convert the string to an integer extracted_number
+  set_fact:
+    extracted_number_int: "{{ extracted_number | int }}"
+
 - name: Calculate lines per chunk
   set_fact:
-    lines_per_chunk: "{{ ((file_line_count.stdout.split()[0] | int) + total_hosts - 1) // total_hosts }}"
+    lines_per_chunk: "{{ ((extracted_number_int |int) + (total_hosts_int| int - 1) ) // (total_hosts_int |int) }}"
+#!fixme: bad way to str to int 
+    # lines_per_chunk: "{{ (extracted_number | int ) }}"
+    # lines_per_chunk: "{{ (extracted_number_int + total_hosts_int )  }}"
+    # lines_per_chunk: "{{ ((extracted_number | int) + total_hosts_int - 1) // total_hosts_int }}"
 
+- name: Extract the base name of the source file
+  set_fact:
+    base_name: "{{ source_file | basename | splitext | first }}"
 
 - name: Split the file into chunks
   command: >
-    split -l {{ lines_per_chunk }} {{ source_file }} {{ output_dir }}/chunk_
+    split -l {{ lines_per_chunk }} {{ source_file }} {{ output_dir }}/{{ base_name }}_part_
+
   args:
-    creates: "{{ output_dir }}/chunk_aa"
+    creates: "{{ output_dir }}/{{ base_name }}"
   delegate_to: localhost
 
 - name: Distribute chunks to each host
   copy:
     src: "{{ output_dir }}/chunk_{{ (inventory_hostname_short | lower | ord - 'a' | ord | lower + 'a' | ord) }}"
-    dest: "/destination/path/on/remote/{{ inventory_hostname }}_chunk.txt"
+    dest: "/home/{{ inventory_hostname }}_chunk.txt"
+  # with_items: "{{ file_distribution[groups['all'].index(inventory_hostname)] }}"
   ignore_errors: yes

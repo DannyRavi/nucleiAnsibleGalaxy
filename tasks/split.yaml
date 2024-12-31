@@ -1,0 +1,33 @@
+---
+
+- name: Calculate the number of lines in the source file
+  command: "wc -l {{ source_file }}"
+  register: file_line_count
+  delegate_to: localhost
+  changed_when: false
+
+- name: Calculate the number of hosts
+  set_fact:
+    total_hosts: "{{ groups['all'] | length }}"
+
+- name: split family
+  debug:
+    msg: "split : {{ file_line_count.stdout.split()[0] }}"
+
+- name: Calculate lines per chunk
+  set_fact:
+    lines_per_chunk: "{{ ((file_line_count.stdout.split()[0] | int) + total_hosts - 1) // total_hosts }}"
+
+
+- name: Split the file into chunks
+  command: >
+    split -l {{ lines_per_chunk }} {{ source_file }} {{ output_dir }}/chunk_
+  args:
+    creates: "{{ output_dir }}/chunk_aa"
+  delegate_to: localhost
+
+- name: Distribute chunks to each host
+  copy:
+    src: "{{ output_dir }}/chunk_{{ (inventory_hostname_short | lower | ord - 'a' | ord | lower + 'a' | ord) }}"
+    dest: "/destination/path/on/remote/{{ inventory_hostname }}_chunk.txt"
+  ignore_errors: yes

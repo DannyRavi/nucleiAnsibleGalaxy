@@ -13,3 +13,7 @@ nuclei_command: -ut
 nuclei_args: "-u example.com -t http/vulnerabilities/cisco/"
 
 output_file: /var/log/result.json
+
+
+source_file: "/home/danny/Project/nuclie_ansible/roles/nuclei/files/input.txt" # Path to the file to be split
+output_dir: "/home/" # Directory to store the split files

@@ -19,6 +19,14 @@
         - run
   tags: run
 
+  # Setup/install tasks.
+- name: split files
+  ansible.builtin.include_tasks:
+    file: split.yaml
+    apply:
+      tags:
+        - split
+  tags: split
 
 - name: install nuclei linux
   ansible.builtin.include_tasks:

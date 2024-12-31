@@ -48,7 +48,7 @@
   register: nuclei_version_check
 
 - debug:
-    var: nuclei_version_check.stdout
+    var: nuclei_version_check.lines_per_chunk
 
 - name: Check if nuclei Templates zip file exists
   stat:

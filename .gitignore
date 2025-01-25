@@ -21,3 +21,6 @@ Cargo.lock
 
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
+files/out/input_part_aa
+files/input.txt
+files/out/input_part_ab

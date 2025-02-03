@@ -13,7 +13,8 @@ nuclei_command: -ut
 nuclei_args: "-u example.com -t http/vulnerabilities/cisco/"
 
 output_file: /var/log/result.json
-
-
+#! fixme nuclie_ansible is wrong name
 source_file: "/home/danny/Project/nuclie_ansible/roles/nuclei/files/input.txt" # Path to the file to be split
 output_dir: "/home/danny/Project/nuclie_ansible/roles/nuclei/files/out" # Directory to store the split files
+upload_dir: "/tmp/"
+format_string: ".csv"

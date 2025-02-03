@@ -44,161 +44,35 @@
 
 - name: Split the file into chunks
   command: >
-    split -l {{ lines_per_chunk }} {{ source_file }} {{ output_dir }}/{{ base_name }}_part_
+    split -l  {{ lines_per_chunk }} {{ source_file }} {{ output_dir }}/{{ base_name }} --additional-suffix=.csv
 
   args:
-    creates: "{{ output_dir }}/{{ base_name }}"
+    creates: "{{ output_dir }}/{{ base_name  }}"
   delegate_to: localhost
 
-- name: Distribute chunks to each host
-  copy:
-    src: "{{ output_dir }}/chunk_{{ (inventory_hostname_short | lower | ord - 'a' | ord | lower + 'a' | ord) }}"
-    dest: "/home/{{ inventory_hostname }}_chunk.txt"
-  # with_items: "{{ file_distribution[groups['all'].index(inventory_hostname)] }}"
-  ignore_errors: yes
-
-
-# ############## extracted_number
-
-# - name: Split files in localhost
-#   hosts: localhost
-#   # become: true  # Requires root privileges
-#   gather_facts: no
-#   vars_files:
-#     - main.yaml
-#   tasks:
-- name: Check if the directory upload_dir exists
-  stat:
-    path: "{{ upload_dir }}"
-  register: masq_dir
-
-- name: Create directory upload_dir if it doesn't exist
-  file:
-    path: "{{ upload_dir }}"
-    state: directory
-  when: not masq_dir.stat.exists
-
-- name: Check if the directory split_dir exists
-  stat:
-    path: "{{ split_dir }}"
-  register: masq_dir2
-  ignore_errors: yes
-
-- name: Create directory if it doesn't exist
-  file:
-    path: "{{ split_dir }}"
-    state: directory
-    #mode: '0755'
-  when: not masq_dir2.stat.exists
 
 - name: Find files in the directory
   ansible.builtin.find:
-    paths: "{{upload_dir}}"
-    age_stamp: mtime
-  register: found_upload_files
-
-- name: Check exist upload_file
-  debug:
-    msg: "There isn't any file, please upload file ..."
-  when: found_upload_files.matched == 0
-
-- name: Set fact for the most recently modified uploaded file
-  set_fact:
-    file_upload: "{{ found_upload_files.files | sort(attribute='mtime', reverse=True) | first }}"
-  failed_when: found_upload_files.matched == 0
-
-- name: Display the most recently modified file
-  debug:
-    msg: "The most recently modified file is {{ file_upload.path }}"
-
-- name: Define list of target servers
-  set_fact:
-    servers: "{{ groups['slavedb'] }}"
-
-- name: Determine the total number of lines in the file
-  command: wc -l "{{file_upload.path}}"
-  register: lines_count
-
-- name: Calculate lines per server
-  set_fact:
-    lines_per_server: "{{ (lines_count.stdout.split()[0] | int // servers | length ) + (1 if ( lines_count.stdout.split()[0] | int ) % servers | length != 0 else 0) }}"
-    ## if not divisible : +1
-
-- name: Splite the file
-  shell: "split -d --additional-suffix=.txt -l {{lines_per_server}} {{file_upload.path}} {{split_dir}}{{split_prefix}}"
-
-- name: get out files name
-  command: "ls {{split_dir}}"
-  register: files_out
-
-- name: Set global fact for list of files
-  set_fact:
-    files_list: "{{ files_out.stdout_lines }}"  # Make it global
+    paths: "{{ output_dir }}"
+    patterns: "*"  # Match all files (or specify a pattern like "*.txt")
+    recurse: no
+  register: file_list
   delegate_to: localhost
 
-# - name: move split files to servers
-#   hosts: slavedb
-#   gather_facts: no
-#   vars_files:
-#     - main.yaml
-#   tasks:
-#     # - name: Delete existing input.lst
-#     #   file:
-#     #     path: "{{ remote_split_dir }}{{source_file}}"
-#     #     state: absent
+- name: Debug file list (optional)
+  ansible.builtin.debug:
+    var: file_list.files
+  delegate_to: localhost
 
-#     - name: move each file to seperate servers
-#       copy:
-#         src: "{{split_dir}}{{item.0}}"
-#         dest: "{{remote_split_dir}}"
-#       with_together:
-#         - "{{ hostvars['localhost']['files_list'] }}"  # list of files
-#         - "{{ hostvars['localhost']['servers'] }}"     # list of servers
-#       when: inventory_hostname == item.1
+- name: Set file paths as a fact
+  set_fact:
+    files: "{{ file_list.files | map(attribute='path') | list }}"
+  delegate_to: localhost
 
-#     - name: Make sure service has time to start or stop
-#       pause:
-#         seconds: 10
 
-#     - name: Get the first and last line of the file
-#       shell: |
-#         echo "First line: $(head -n 1 "{{remote_split_dir}}"split_file*.txt)"
-#         echo "Last line: $(tail -n 1 "{{remote_split_dir}}"split_file_*.txt)"        
-#       register: file_lines
+- name: Upload file to server
+  ansible.builtin.copy:
+    src: "{{ files[play_hosts.index(inventory_hostname)] }}"
+    dest: "/tmp/{{ files[play_hosts.index(inventory_hostname)] | basename }}"
 
-#     - name: Display the first and last line
-#       debug:
-#         msg: "{{ file_lines.stdout_lines}}"
 
-#     - name: rename files on target servers
-#       command: mv "{{ remote_split_dir }}{{ item.0 }}" "{{ remote_split_dir }}{{source_file}}"
-#       with_together:
-#         - "{{ hostvars['localhost']['files_list'] }}"  # list of files
-#         - "{{ hostvars['localhost']['servers'] }}"     # list of servers
-#       when: inventory_hostname == item.1
-
-# - name: remove splited files from source
-#   hosts: localhost
-#   gather_facts: no
-#   vars_files:
-#     - main.yaml
-#   tasks:
-#     - name: Remove splited files in local
-#       file:
-#         path: "{{split_dir}}"
-#         state: absent
-#         force: yes
-
-#     - name: Find all files in uploaded files directory
-#       ansible.builtin.find:
-#         paths: "{{upload_dir}}"
-#         recurse: yes
-#         file_type: file
-#       register: files_to_remove
-
-#     - name: Remove uploaded files in local
-#       file:
-#         path: "{{item.path}}"
-#         state: absent
-#         force: yes
-#       loop: "{{ files_to_remove.files }}"

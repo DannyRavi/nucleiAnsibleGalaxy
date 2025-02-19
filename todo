@@ -1,5 +1,7 @@
 - [x] add input flag
-- [ ] add split files
-- [ ] workflow and input file
+- [x] add split files
+- [x] workflow and input file
+- [ ] resume or progress bar
 - [ ] some command should be interactive
 - [ ] config files
+- [x] result collector

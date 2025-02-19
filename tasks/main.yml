@@ -28,6 +28,15 @@
         - split
   tags: split
 
+
+- name: collect result files
+  ansible.builtin.include_tasks:
+    file: collect.yaml
+    apply:
+      tags:
+        - collect
+  tags: collect
+
 - name: install nuclei linux
   ansible.builtin.include_tasks:
     file: setup-linuxAmd64.yaml

@@ -1,0 +1,9 @@
+---
+
+
+- name: Fetch JSON file from target hosts
+  ansible.builtin.fetch:
+    src: "/var/log/result.json"  # Path on the target host
+    dest: "/tmp/fetched_files/{{ inventory_hostname }}.json"  # Path on the control node
+    flat: yes  # Saves without creating host-specific directory
+

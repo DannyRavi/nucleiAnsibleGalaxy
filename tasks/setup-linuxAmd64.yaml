@@ -5,7 +5,6 @@
     msg: "OS Family: {{ ansible_os_family }}"
 
 - name: Ensure the necessary dependencies are installed
-  become: true
   ansible.builtin.package:
     name: unzip
     state: present

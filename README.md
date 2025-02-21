@@ -10,7 +10,9 @@ This Ansible Galaxy role installs and configures the [Nuclei Scanner](https://gi
 
 ## Role Variables
 
-Available variables are listed below, along with their default values:
+Available variables are listed below, along with their default values in `defaults/main.yml`:
+
+
 
 ```yaml
 nuclei_download_url: "https://github.com/projectdiscovery/nuclei/releases/latest/download/nuclei.zip"
@@ -94,19 +96,25 @@ ansible-playbook -i inventory.ini  ./install_nuclei.yml  --tags "split"
 for running single target use `-u <host>`
 
 ‍‍‍‍‍```sh
+
 ansible-playbook -i inventory.ini  ./install_nuclei.yml -e "nuclei_args= -u example.com -t ssl "  --tags "run"
+
 ```
 
 for running list targets
 
 ```sh
+
 ansible-playbook -i inventory.ini  ./install_nuclei.yml -e "nuclei_args='-list /tmp/*.csv -t ssl'"  --tags "run"
+
 ```
 
 for collect results from workers:
 
 ```sh
+
 ansible-playbook -i inventory.ini  ./install_nuclei.yml   --tags "collect"
+
 ```
 
 ## License

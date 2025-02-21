@@ -96,14 +96,12 @@ ansible-playbook -i inventory.ini  ./install_nuclei.yml  --tags "split"
 
 ```
 
-for running single target use `-u <host>`
+for running single target use `-u <host>` you should:
 
-‍‍‍‍‍```sh
 
+```sh
 ansible-playbook -i inventory.ini  ./install_nuclei.yml -e "nuclei_args= -u example.com -t ssl "  --tags "run"
-
 ```
-
 for running list targets:
 
 ```sh

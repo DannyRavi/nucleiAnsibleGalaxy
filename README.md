@@ -85,7 +85,9 @@ for `inventory.ini` file
 After installing the role, you can run Nuclei as follows:
 
 for spilt input list:
-copy input file into /tmp/input.txt
+
+copy `input` file into `/tmp/input.txt`
+
 
 ```sh
 cp <your input list> /tmp/input.txt
@@ -93,6 +95,7 @@ cp <your input list> /tmp/input.txt
 ansible-playbook -i inventory.ini  ./install_nuclei.yml  --tags "split"
 
 ```
+
 for running single target use `-u <host>`
 
 ‍‍‍‍‍```sh
@@ -101,13 +104,14 @@ ansible-playbook -i inventory.ini  ./install_nuclei.yml -e "nuclei_args= -u exam
 
 ```
 
-for running list targets
+for running list targets:
 
 ```sh
-
 ansible-playbook -i inventory.ini  ./install_nuclei.yml -e "nuclei_args='-list /tmp/*.csv -t ssl'"  --tags "run"
 
 ```
+
+
 
 for collect results from workers:
 

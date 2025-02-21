@@ -119,6 +119,10 @@ ansible-playbook -i inventory.ini  ./install_nuclei.yml   --tags "collect"
 
 ```
 
+and find the results on master in this path:
+
+`/tmp/fetched_files/`
+
 ## License
 
 MIT

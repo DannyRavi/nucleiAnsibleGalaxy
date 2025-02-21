@@ -24,6 +24,8 @@ This role has no specific dependencies.
 
 ## Example Playbook
 
+for example `install_nuclei.yml`
+
 ```yaml
 ---
 - name: Install and run nuclei

@@ -1,0 +1,22 @@
+namespace: nuclei
+name: nuclei
+version: 0.0.1
+authors:
+  - "DannyRavi (https://github.com/DannyRavi)"
+license: LICENSE
+repository: https://github.com/DannyRavi/nucleiAnsibleGalaxy
+description: Nuclei at scale
+tags:
+  - scanner
+  - security
+  - cyberSecurity
+
+build_ignore:
+  - .config
+  - .github
+  - .gitignore
+  - changelogs
+  - roles/*/molecule
+  - tests
+  - '*test-requirements.txt'
+  - '*.tar.gz'

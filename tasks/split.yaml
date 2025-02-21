@@ -34,14 +34,27 @@
   set_fact:
     lines_per_chunk: "{{ ((extracted_number_int |int) + (total_hosts_int| int - 1) ) // (total_hosts_int |int) }}"
 #!fixme: bad way to str to int 
-    # lines_per_chunk: "{{ (extracted_number | int ) }}"
-    # lines_per_chunk: "{{ (extracted_number_int + total_hosts_int )  }}"
-    # lines_per_chunk: "{{ ((extracted_number | int) + total_hosts_int - 1) // total_hosts_int }}"
+
 
 - name: Extract the base name of the source file
   set_fact:
     base_name: "{{ source_file | basename | splitext | first }}"
 
+
+- name: Check if the folder /tmp/out exists
+  ansible.builtin.stat:
+    path: /tmp/out
+  register: folder_stat
+  delegate_to: localhost
+
+- name: Create the folder /tmp/out if it does not exist
+  ansible.builtin.file:
+    path: /tmp/out
+    state: directory
+    mode: '0755'
+  when: not folder_stat.stat.exists
+  delegate_to: localhost
+  
 - name: Split the file into chunks
   command: >
     split -l  {{ lines_per_chunk }} {{ source_file }} {{ output_dir }}/{{ base_name }} --additional-suffix=.csv

@@ -55,6 +55,10 @@ for `inventory.ini` file
 192.168.56.11 ansible_user=root
 ```
 
+### Architect
+
+![image](./files/arch.png)
+
 ## Role Tasks
 
 ### 1. Download and Install Nuclei Binary
@@ -76,8 +80,31 @@ for `inventory.ini` file
 
 After installing the role, you can run Nuclei as follows:
 
-```bash
-nuclei -u http://example.com -t /opt/nuclei-templates
+for spilt input list:
+copy input file into /tmp/input.txt
+
+```sh
+cp <your input list> /tmp/input.txt
+
+ansible-playbook -i inventory.ini  ./install_nuclei.yml  --tags "split"
+
+```
+for running single target use `-u <host>`
+
+‍‍‍‍‍```sh
+ansible-playbook -i inventory.ini  ./install_nuclei.yml -e "nuclei_args= -u example.com -t ssl "  --tags "run"
+```
+
+for running list targets
+
+```sh
+ansible-playbook -i inventory.ini  ./install_nuclei.yml -e "nuclei_args='-list /tmp/*.csv -t ssl'"  --tags "run"
+```
+
+for collect results from workers:
+
+```sh
+ansible-playbook -i inventory.ini  ./install_nuclei.yml   --tags "collect"
 ```
 
 ## License
